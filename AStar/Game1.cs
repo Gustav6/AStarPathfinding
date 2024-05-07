@@ -10,12 +10,17 @@ namespace AStar
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
 
+        public static SpriteFont font;
         private Texture2D tileTexture;
         private Tile[,] tileMap;
 
         public Game1()
         {
-            _graphics = new GraphicsDeviceManager(this);
+            _graphics = new GraphicsDeviceManager(this)
+            {
+                PreferredBackBufferHeight = 1080,
+                PreferredBackBufferWidth = 1920
+            };
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
         }
@@ -30,16 +35,23 @@ namespace AStar
             {
                 for (int y = 0; y < tileMap.GetLength(1); y++)
                 {
-                    tileMap[x, y] = new Tile(tileTexture, new Vector2(x * tileTexture.Width, y * tileTexture.Height));
+                    tileMap[x, y] = new Tile(tileTexture, new Vector2(x * tileTexture.Width, y * tileTexture.Height), x, y);
                 }
             }
+
+            // Sets starting tile to 0, 0 and tries to find path to 1, 1
+            Tile target = tileMap[2, 2];
+
+            AStar.FindPath(tileMap, target, 0, 0);
+            target.color = Color.Green;
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
-            tileTexture = CreateTexture(32, 32, pixel => Color.White);
+            font = Content.Load<SpriteFont>("font");
+            tileTexture = CreateTexture(64, 64, pixel => Color.White);
         }
 
         protected override void Update(GameTime gameTime)
