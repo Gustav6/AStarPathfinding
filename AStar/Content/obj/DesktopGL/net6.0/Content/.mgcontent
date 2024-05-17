@@ -4,7 +4,7 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/gustav.ekstrom1/Documents/GitHub/AStarPathfinding/AStar/Content/File.spritefont</File>
+    <File>C:/Users/gusta/Documents/Github/AStarPathfinding/AStar/Content/File.spritefont</File>
   </SourceFiles>
   <DestFiles>
     <File>font</File>

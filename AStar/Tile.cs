@@ -12,6 +12,7 @@ namespace AStar
     {
         private Texture2D texture;
         public Vector2 Position { get; private set; }
+        public Rectangle Bounds { get; private set; }
         public Color color = Color.White;
 
         public int MapPositionX { get; private set; }
@@ -22,20 +23,47 @@ namespace AStar
         public int hCost; // How far away from end node
         public int fCost; // gCost + hCost
 
-        public Tile(Texture2D _texture, Vector2 position, int x, int y)
+        public Vector2 fontSize;
+
+        public Tile(Texture2D _texture, Vector2 position, int x, int y, TIleType type)
         {
             texture = _texture;
             Position = position;
             MapPositionX = x;
             MapPositionY = y;
+
+            Bounds = new Rectangle((int)Position.X, (int)Position.Y, texture.Width, texture.Height);
+            if (type == TIleType.unPassable)
+            {
+                IsSolid = true;
+            }
+        }
+
+        public void ResetTile()
+        {
+            gCost = 0;
+            hCost = 0;
+            fCost = 0;
+            color = Color.White;
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(texture, Position, color);
 
-            spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 10, Position.Y + texture.Height / 2 - 5), Color.Red);
-            spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 + 10, Position.Y + texture.Height / 2 - 5), Color.Green);
+            //spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 10, Position.Y + texture.Height / 2 - 5), Color.Red);
+            //spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 + 10, Position.Y + texture.Height / 2 - 5), Color.Green);
+
+            if (fCost != 0)
+            {
+                spriteBatch.DrawString(Game1.font, fCost.ToString(), new Vector2(Position.X + texture.Width / 2 - fontSize.X / 2, Position.Y + texture.Height / 2 - fontSize.Y / 2), Color.Black);
+            }
         }
+    }
+
+    public enum TIleType
+    {
+        passable,
+        unPassable,
     }
 }
