@@ -40,7 +40,7 @@ namespace AStar
             }
 
             // Sets starting tile to 0, 0 and tries to find path to 1, 1
-            Tile target = tileMap[2, 2];
+            Tile target = tileMap[4, 4];
 
             AStar.FindPath(tileMap, target, 0, 0);
             target.color = Color.Green;
@@ -51,7 +51,7 @@ namespace AStar
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             font = Content.Load<SpriteFont>("font");
-            tileTexture = CreateTexture(64, 64, pixel => Color.White);
+            tileTexture = CreateTexture(80, 80, pixel => Color.White);
         }
 
         protected override void Update(GameTime gameTime)

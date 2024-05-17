@@ -11,7 +11,7 @@ namespace AStar
     public class Tile
     {
         private Texture2D texture;
-        private Vector2 position;
+        public Vector2 Position { get; private set; }
         public Color color = Color.White;
 
         public int MapPositionX { get; private set; }
@@ -22,19 +22,20 @@ namespace AStar
         public int hCost; // How far away from end node
         public int fCost; // gCost + hCost
 
-        public Tile(Texture2D _texture, Vector2 _position, int x, int y)
+        public Tile(Texture2D _texture, Vector2 position, int x, int y)
         {
             texture = _texture;
-            position = _position;
+            Position = position;
             MapPositionX = x;
             MapPositionY = y;
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(texture, position, color);
+            spriteBatch.Draw(texture, Position, color);
 
-            spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(position.X + texture.Width / 2, position.Y + texture.Height / 2), Color.Blue);
+            spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 10, Position.Y + texture.Height / 2 - 5), Color.Red);
+            spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 + 10, Position.Y + texture.Height / 2 - 5), Color.Green);
         }
     }
 }

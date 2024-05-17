@@ -33,14 +33,20 @@ namespace AStar
             #region Set cost for starting nodes
             foreach (Tile tile in GetAdjacentNodes(startPosX, startPosY))
             {
-                SetCosts(map[startPosX, startPosY], tile, target, false);
-                openNodes.Add(tile);
+                if (!tile.IsSolid)
+                {
+                    SetCosts(map[startPosX, startPosY], tile, target, false);
+                    openNodes.Add(tile);
+                }
             }
 
             foreach (Tile tile in GetVerticalNodes(startPosX, startPosY))
             {
-                SetCosts(map[startPosX, startPosY], tile, target, true);
-                openNodes.Add(tile);
+                if (!tile.IsSolid)
+                {
+                    SetCosts(map[startPosX, startPosY], tile, target, true);
+                    openNodes.Add(tile);
+                }
             }
             #endregion
 
@@ -99,8 +105,11 @@ namespace AStar
                         //    break;
                         //}
 
-                        SetCosts(map[startPosX, startPosY], tile, target, false);
-                        openNodes.Add(tile);
+                        if (!tile.IsSolid)
+                        {
+                            openNodes.Add(tile);
+                            SetCosts(map[startPosX, startPosY], tile, target, false);
+                        }
                     }
 
                     foreach (Tile tile in GetVerticalNodes(positionX, positionY))
@@ -111,8 +120,11 @@ namespace AStar
                         //    break;
                         //}
 
-                        SetCosts(map[startPosX, startPosY], tile, target, true);
-                        openNodes.Add(tile);
+                        if (!tile.IsSolid)
+                        {
+                            openNodes.Add(tile);
+                            SetCosts(map[startPosX, startPosY], tile, target, true);
+                        }
                     }
                 }
                 #endregion
@@ -134,7 +146,7 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX + 1, positionY];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
@@ -143,7 +155,7 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX - 1, positionY];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
@@ -152,7 +164,7 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX, positionY + 1];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
@@ -161,11 +173,16 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX, positionY - 1];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
             }
+
+            //if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+            //{
+            //    result.Add(NeighboringNode);
+            //}
             #endregion
 
 
@@ -182,7 +199,7 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX + 1, positionY + 1];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
@@ -191,7 +208,7 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX + 1, positionY - 1];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
@@ -200,7 +217,7 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX - 1, positionY - 1];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
@@ -209,11 +226,16 @@ namespace AStar
             {
                 NeighboringNode = nodeMap[positionX - 1, positionY + 1];
 
-                if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+                if (!closedNodes.Contains(NeighboringNode))
                 {
                     result.Add(NeighboringNode);
                 }
             }
+
+            //if (!openNodes.Contains(NeighboringNode) && !closedNodes.Contains(NeighboringNode))
+            //{
+            //    result.Add(NeighboringNode);
+            //}
             #endregion
 
             return result;
@@ -249,20 +271,82 @@ namespace AStar
             {
                 // "Walk" towards target to calculate final distance
 
-                int stepReq, totalCost;
+                int stepReq, totalCost = 0;
 
                 if (distanceX > distanceY)
                     stepReq = distanceX;
                 else
                     stepReq = distanceY;
 
-                int x = NeighboringNode.MapPositionX, y = NeighboringNode.MapPositionY;
+                int x = currentNode.MapPositionX, y = currentNode.MapPositionY;
 
                 // Check neigbors to determine next temp tile and count cost
                 for (int i = 0; i < stepReq; i++)
                 {
+                    int tempCost = 0;
+                    Tile closestNode = null;
 
+                    List<Tile> verticalNodes = new();
+                    verticalNodes.AddRange(GetVerticalNodes(x, y));
+
+                    #region Set distance from target
+                    for (int j = 0; j < verticalNodes.Count; j++)
+                    {
+                        int xDistance = Math.Abs(verticalNodes[j].MapPositionX - target.MapPositionX);
+                        int yDistance = Math.Abs(verticalNodes[j].MapPositionY - target.MapPositionY);
+
+                        if (closestNode == null)
+                        {
+                            closestNode = verticalNodes.First();
+                        }
+                        else
+                        {
+                            int tempXDistance = Math.Abs(closestNode.MapPositionX - target.MapPositionX);
+                            int tempYDistance = Math.Abs(closestNode.MapPositionY - target.MapPositionY);
+
+                            if (xDistance > tempXDistance || yDistance > tempYDistance)
+                            {
+                                tempCost = 14;
+                                closestNode = verticalNodes[j];
+                            }
+                        }
+                    }
+
+                    List<Tile> adjacentNodes = new();
+                    adjacentNodes.AddRange(GetAdjacentNodes(x, y));
+
+                    for (int j = 0; j < adjacentNodes.Count; j++)
+                    {
+                        int xDistance = Math.Abs(adjacentNodes[j].MapPositionX - target.MapPositionX);
+                        int yDistance = Math.Abs(adjacentNodes[j].MapPositionY - target.MapPositionY);
+
+                        if (closestNode == null)
+                        {
+                            closestNode = adjacentNodes.First();
+                        }
+                        else
+                        {
+                            int tempXDistance = Math.Abs(closestNode.MapPositionX - target.MapPositionX);
+                            int tempYDistance = Math.Abs(closestNode.MapPositionY - target.MapPositionY);
+
+                            if (xDistance > tempXDistance || yDistance > tempYDistance)
+                            {
+                                tempCost = 10;
+                                closestNode = adjacentNodes[j];
+                            }
+                        }
+                    }
+                    #endregion
+
+                    if (closestNode != null)
+                    {
+                        x = closestNode.MapPositionX;
+                        y = closestNode.MapPositionY;
+                    }
+                    totalCost += tempCost;
                 }
+
+                NeighboringNode.hCost = totalCost;
             }
             else if (distanceX == 1 || distanceY == 1)
             {

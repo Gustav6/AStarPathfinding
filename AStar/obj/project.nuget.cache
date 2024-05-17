@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "svA6It5AbBnwhFty7p1J4faar41E7sFbuxGuVzBUYwk5aRbTcqdG+MlkvmLKLWSllSqyA81C6g1afhMOYvIfUw==",
+  "dgSpecHash": "P7K/6itYxHuTIknapOxeWMsfz5kubt65j+uWjboLt7Yvz0BMIjXNvOEsf6tmBLpOuJaXo/UPj3Z+44N8Xg3H9Q==",
   "success": true,
-  "projectFilePath": "C:\\Users\\gusta\\Documents\\Github\\AStarPathfinding\\AStar\\AStar.csproj",
+  "projectFilePath": "C:\\Users\\gustav.ekstrom1\\Documents\\GitHub\\AStarPathfinding\\AStar\\AStar.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\gusta\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
-    "C:\\Users\\gusta\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
+    "C:\\Users\\gustav.ekstrom1\\.nuget\\packages\\monogame.content.builder.task\\3.8.1.303\\monogame.content.builder.task.3.8.1.303.nupkg.sha512",
+    "C:\\Users\\gustav.ekstrom1\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.1.303\\monogame.framework.desktopgl.3.8.1.303.nupkg.sha512"
   ],
   "logs": []
 }
