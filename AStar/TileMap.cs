@@ -17,16 +17,16 @@ namespace AStar
 
         public static void CreateMap(int[,] map)
         {
-            Map = new Tile[map.GetLength(1), map.GetLength(0)];
+            Map = new Tile[map.GetLength(0), map.GetLength(1)];
 
-            for (int x = 0; x < Map.GetLength(1); x++)
+            for (int x = 0; x < Map.GetLength(0); x++)
             {
-                for (int y = 0; y < Map.GetLength(0); y++)
+                for (int y = 0; y < Map.GetLength(1); y++)
                 {
                     Texture2D texture;
                     TIleType type;
 
-                    if (map[y, x] == 1)
+                    if (map[x, y] == 1)
                     {
                         texture = solidTileTexture;
                         type = TIleType.unPassable;
@@ -37,7 +37,7 @@ namespace AStar
                         type = TIleType.passable;
                     }
 
-                    Map[x, y] = new Tile(texture, new Vector2(x * tileTexture.Width, y * tileTexture.Height), x, y, type);
+                    Map[x, y] = new Tile(texture, new Vector2(x * tileTexture.Width + x * 2, y * tileTexture.Height + y * 2), x, y, type);
 
                     tiles.Add(Map[x, y]);
                 }

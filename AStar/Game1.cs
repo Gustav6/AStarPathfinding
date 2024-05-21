@@ -17,8 +17,9 @@ namespace AStar
         private static KeyboardState keyPrevState;
 
         public static SpriteFont font;
+        private Color prevTileColor;
+        private Tile prevTile;
         bool hasRunAStar;
-        float timer;
 
         public Game1()
         {
@@ -37,15 +38,30 @@ namespace AStar
 
             TileMap.CreateMap(new int[,]
             {
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 1, 1, 1, 0, 0 },
-                { 0, 0, 0, 0, 0, 0, 1, 0, 1 },
-                { 0, 0, 1, 1, 1, 0, 1, 0, 1 },
-                { 0, 0, 0, 0, 1, 0, 0, 0, 0 },
-                { 0, 0, 0, 0, 1, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
+                { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0 },
+                { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0 },
+                { 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0 },
+                { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+                { 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0 },
+                { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
             });
         }
 
@@ -54,8 +70,8 @@ namespace AStar
             _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             font = Content.Load<SpriteFont>("font");
-            TileMap.tileTexture = CreateTexture(80, 80, pixel => Color.White);
-            TileMap.solidTileTexture = CreateTexture(80, 80, pixel => Color.Black);
+            TileMap.tileTexture = CreateTexture(48, 48, pixel => Color.White);
+            TileMap.solidTileTexture = CreateTexture(48, 48, pixel => Color.Black);
         }
 
         protected override void Update(GameTime gameTime)
@@ -74,19 +90,7 @@ namespace AStar
             SetStart();
             SetEnd();
             RunAStar();
-
-            if (start != null && target != null && hasRunAStar)
-            {
-                if (timer <= 0)
-                {
-                    AStar.Temp();
-                    timer = 0.05f;
-                }
-                else
-                {
-                    timer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
-                }
-            }
+            CheckParent();
 
             base.Update(gameTime);
         }
@@ -103,10 +107,36 @@ namespace AStar
             }
         }
 
+        public void CheckParent()
+        {
+            if (HasBeenPressed(currentState.MiddleButton, prevState.MiddleButton))
+            {
+                for (int i = 0; i < TileMap.tiles.Count; i++)
+                {
+                    if (TileMap.tiles[i].Bounds.Intersects(GetBounds(true)))
+                    {
+                        if (prevTile != null)
+                        {
+                            prevTile.color = prevTileColor;
+                        }
+
+                        if (TileMap.tiles[i].parent != null)
+                        {
+                            prevTileColor = TileMap.tiles[i].parent.color;
+                            TileMap.tiles[i].parent.color = Color.White;
+                            prevTile = TileMap.tiles[i].parent;
+                        }
+                    }
+                }
+            }
+        }
+
         public void SetStart()
         {
             if (HasBeenPressed(currentState.LeftButton, prevState.LeftButton))
             {
+                prevTile = null;
+
                 if (start != null)
                 {
                     start.ResetTile();
@@ -117,7 +147,8 @@ namespace AStar
                     if (TileMap.tiles[i].Bounds.Intersects(GetBounds(true)))
                     {
                         start = TileMap.tiles[i];
-                        start.color = Color.Blue;
+                        start.color = Color.LightBlue;
+                        start.text = "Start";
                     }
                 }
                 hasRunAStar = false;
@@ -128,6 +159,8 @@ namespace AStar
         {
             if (HasBeenPressed(currentState.RightButton, prevState.RightButton))
             {
+                prevTile = null;
+
                 if (target != null)
                 {
                     target.ResetTile();
@@ -138,7 +171,8 @@ namespace AStar
                     if (TileMap.tiles[i].Bounds.Intersects(GetBounds(true)))
                     {
                         target = TileMap.tiles[i];
-                        target.color = Color.Green;
+                        target.color = Color.LightBlue;
+                        target.text = "End";
                     }
                 }
                 hasRunAStar = false;
@@ -183,7 +217,7 @@ namespace AStar
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(Color.Black);
 
             _spriteBatch.Begin();
 

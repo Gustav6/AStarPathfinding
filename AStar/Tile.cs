@@ -21,8 +21,10 @@ namespace AStar
 
         public int gCost; // Cost from starting tile
         public int hCost; // How far away from end node
-        public int fCost; // gCost + hCost
+        public int fCost; // GCost + hCost
+        public Tile parent; // What node that "owns" the current node
 
+        public string text = "";
         public Vector2 fontSize;
 
         public Tile(Texture2D _texture, Vector2 position, int x, int y, TIleType type)
@@ -41,6 +43,7 @@ namespace AStar
 
         public void ResetTile()
         {
+            text = string.Empty;
             gCost = 0;
             hCost = 0;
             fCost = 0;
@@ -51,13 +54,15 @@ namespace AStar
         {
             spriteBatch.Draw(texture, Position, color);
 
-            //spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 10, Position.Y + texture.Height / 2 - 5), Color.Red);
-            //spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 + 10, Position.Y + texture.Height / 2 - 5), Color.Green);
+            //spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 20, Position.Y + texture.Height / 2 - 5), Color.Yellow);
+            spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 5, Position.Y + texture.Height / 2 - 5), Color.Black);
 
             if (fCost != 0)
             {
-                spriteBatch.DrawString(Game1.font, fCost.ToString(), new Vector2(Position.X + texture.Width / 2 - fontSize.X / 2, Position.Y + texture.Height / 2 - fontSize.Y / 2), Color.Black);
+                //spriteBatch.DrawString(Game1.font, fCost.ToString(), new Vector2(Position.X + texture.Width / 2 - fontSize.X / 2, Position.Y + texture.Height / 2 - fontSize.Y / 2), Color.Black);
             }
+
+            //spriteBatch.DrawString(Game1.font, text, new Vector2(Position.X + texture.Width / 2 - 15, Position.Y + texture.Height / 2 - 5), Color.Black);
         }
     }
 
