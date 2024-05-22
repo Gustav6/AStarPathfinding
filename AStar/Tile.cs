@@ -62,7 +62,7 @@ namespace AStar
                 //spriteBatch.DrawString(Game1.font, fCost.ToString(), new Vector2(Position.X + texture.Width / 2 - fontSize.X / 2, Position.Y + texture.Height / 2 - fontSize.Y / 2), Color.Black);
             }
 
-            //spriteBatch.DrawString(Game1.font, text, new Vector2(Position.X + texture.Width / 2 - 15, Position.Y + texture.Height / 2 - 5), Color.Black);
+            spriteBatch.DrawString(Game1.font, text, new Vector2(Position.X + texture.Width / 2 - 15, Position.Y + texture.Height / 2 - 5), Color.Black);
         }
     }
 
