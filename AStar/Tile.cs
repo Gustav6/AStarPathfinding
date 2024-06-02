@@ -10,16 +10,18 @@ namespace AStar
 {
     public class Tile
     {
-        private Texture2D texture;
+        public Texture2D texture;
         public Vector2 Position { get; private set; }
         public Rectangle Bounds { get; private set; }
         public Color color = Color.White;
 
-        public int MapPositionX { get; private set; }
-        public int MapPositionY { get; private set; }
+        public int GridX { get; private set; }
+        public int GridY { get; private set; }
         public bool IsSolid { get; private set; }
 
-        public int gCost; // Cost from starting tile
+        public TIleType Type { get; private set; }
+
+        public int gCost; // Cost from starting node
         public int hCost; // How far away from end node
         public int fCost; // GCost + hCost
         public Tile parent; // What node that "owns" the current node
@@ -31,11 +33,12 @@ namespace AStar
         {
             texture = _texture;
             Position = position;
-            MapPositionX = x;
-            MapPositionY = y;
+            GridX = x;
+            GridY = y;
+            Type = type;
 
             Bounds = new Rectangle((int)Position.X, (int)Position.Y, texture.Width, texture.Height);
-            if (type == TIleType.unPassable)
+            if (Type == TIleType.unPassable)
             {
                 IsSolid = true;
             }
@@ -55,7 +58,7 @@ namespace AStar
             spriteBatch.Draw(texture, Position, color);
 
             //spriteBatch.DrawString(Game1.font, hCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 20, Position.Y + texture.Height / 2 - 5), Color.Yellow);
-            spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 5, Position.Y + texture.Height / 2 - 5), Color.Black);
+            //spriteBatch.DrawString(Game1.font, gCost.ToString(), new Vector2(Position.X + texture.Width / 2 - 5, Position.Y + texture.Height / 2 - 5), Color.Black);
 
             if (fCost != 0)
             {

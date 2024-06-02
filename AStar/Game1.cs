@@ -101,7 +101,7 @@ namespace AStar
             {
                 if (start != null && target != null)
                 {
-                    AStar.FindPath(TileMap.Map, target, start);
+                    AStar.GetPath(TileMap.Map, start, target);
                     hasRunAStar = true;
                 }
             }

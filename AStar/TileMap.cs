@@ -37,7 +37,9 @@ namespace AStar
                         type = TIleType.passable;
                     }
 
-                    Map[x, y] = new Tile(texture, new Vector2(x * tileTexture.Width + x * 2, y * tileTexture.Height + y * 2), x, y, type);
+                    Vector2 position = new(x * tileTexture.Width + x * 2, y * tileTexture.Height + y * 2);
+
+                    Map[x, y] = new Tile(texture, position, x, y, type);
 
                     tiles.Add(Map[x, y]);
                 }

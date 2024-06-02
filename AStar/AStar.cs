@@ -1,502 +1,291 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.VisualBasic;
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace AStar
 {
     public class AStar
     {
-        private static HashSet<Tile> closedNodes;
-        private static List<Tile> openNodes;
-        private static Tile[,] map;
+        private static readonly bool canMoveVertical = false;
+
+        public static bool FoundPath { get; private set; }
+        private static Tile[,] grid;
+
         private static Tile targetNode;
         private static Tile startingNode;
 
-        private static bool foundPath;
-        private static float timer;
-
-        public static List<Tile> Path()
+        public static void GetPath(Tile[,] grid, Tile start, Tile target)
         {
-            List<Tile> result = new();
+            FindPath(grid, start, target);
 
-            if (foundPath)
+            if (FoundPath)
             {
-                Tile currentTile = targetNode.parent;
+                Tile currentTile = target.parent;
 
                 while (currentTile != startingNode)
                 {
-                    result.Add(currentTile);
+                    currentTile.color = Color.LightBlue;
 
-                    currentTile = currentTile.parent;
-                }
-            }
-
-            return result;
-        }
-
-        public static void FindPath(Tile[,] _map, Tile _target, Tile _start)
-        {
-            // Variables needed to run the method
-            if (_target == null || _start == null || _map == null) 
-                return;
-
-            targetNode = _target;
-            startingNode = _start;
-
-            foundPath = false;
-
-            for (int x = 0; x < _map.GetLength(0); x++)
-            {
-                for (int y = 0; y < _map.GetLength(1); y++)
-                {
-                    if (_map[x, y] != targetNode && _map[x, y] != startingNode)
+                    if (currentTile.parent != null)
                     {
-                        _map[x, y].ResetTile();
+                        currentTile = currentTile.parent;
                     }
                 }
             }
+        }
+        private static void FindPath(Tile[,] _grid, Tile start, Tile target)
+        {
+            // Variables needed to run the method
+            if (target == null || start == null || _grid == null || target == start) 
+                return;
 
-            map = _map;
-            int positionX = startingNode.MapPositionX, positionY = startingNode.MapPositionY;
+            startingNode = start;
+            targetNode = target;
+            grid = _grid;
+            FoundPath = false;
 
-            closedNodes = new HashSet<Tile>()
+            #region Reset map
+            for (int x = 0; x < grid.GetLength(0); x++)
             {
-                { map[positionX, positionY] }
-            };
-
-            openNodes = new List<Tile>();
-
-            #region Set cost for starting nodes
-            foreach (Tile tile in GetAdjacentNodes(positionX, positionY))
-            {
-                if (!tile.IsSolid)
+                for (int y = 0; y < grid.GetLength(1); y++)
                 {
-                    SetCosts(map[positionX, positionY], tile, false);
-                    tile.color = Color.Green;
-                    openNodes.Add(tile);
-                }
-            }
-
-            foreach (Tile tile in GetVerticalNodes(positionX, positionY))
-            {
-                if (!tile.IsSolid)
-                {
-                    SetCosts(map[positionX, positionY], tile, true);
-                    tile.color = Color.Green;
-                    openNodes.Add(tile);
+                    if (grid[x, y] != targetNode && grid[x, y] != startingNode)
+                    {
+                        grid[x, y].ResetTile();
+                    }
                 }
             }
             #endregion
 
-            Tile temp = null;
-            float fCost = 0;
-            float hCost = 0;
+            HashSet<Tile> closedNodes = new();
+            List<Tile> openNodes = new()
+            {
+                startingNode
+            };
 
-            while (!foundPath)
+            Tile currentNode = startingNode;
+
+            while (!FoundPath && openNodes.Count > 0)
             {
                 for (int i = 0; i < openNodes.Count; i++)
                 {
-                    if (temp == null)
+                    if (currentNode == null)
                     {
-                        temp = openNodes[i];
-
-                        fCost = temp.fCost;
-                        hCost = temp.hCost;
-
+                        currentNode = openNodes[i];
                     }
-                    else
+                    else if (currentNode.fCost > openNodes[i].fCost || currentNode.fCost == openNodes[i].fCost && currentNode.hCost > openNodes[i].hCost)
                     {
-                        if (openNodes[i].fCost < fCost)
-                        {
-                            fCost = openNodes[i].fCost;
-                            hCost = openNodes[i].hCost;
-
-                            temp = openNodes[i];
-                        }
-                        else if (openNodes[i].fCost == fCost)
-                        {
-                            // Runs when the total cost is the same
-                            // Then get the node with the least cost from the target
-
-                            if (openNodes[i].hCost < hCost)
-                            {
-                                // Is closer to the target
-                                temp = openNodes[i];
-                            }
-                        }
+                        currentNode = openNodes[i];
                     }
                 }
 
-                if (!foundPath)
+                #region Check neighbors
+                foreach (Tile neighbor in GetNeighbors(currentNode.GridX, currentNode.GridY))
                 {
-                    CheckOpenNodes(temp);
+                    if (neighbor == targetNode)
+                    {
+                        FoundPath = true;
+                        targetNode.parent = currentNode;
+                        break;
+                    }
+                    else if (closedNodes.Contains(neighbor) || neighbor.IsSolid)
+                        continue;
+
+                    int newPathCost = currentNode.gCost + GetDistance(currentNode, neighbor);
+
+                    if (newPathCost < neighbor.gCost || !openNodes.Contains(neighbor))
+                    {
+                        openNodes.Add(neighbor);
+                        //neighbor.color = Color.Green;
+
+                        SetCosts(grid[currentNode.GridX, currentNode.GridY], neighbor);
+                    }
+                }
+                #endregion
+
+                if (currentNode != targetNode && currentNode != startingNode)
+                {
+                    //currentNode.color = Color.Red;
                 }
 
-                closedNodes.Add(temp);
-                openNodes.Remove(temp);
-                temp = null;
-            }
-
-            for (int i = 0; i < Path().Count; i++)
-            {
-                Path()[i].color = Color.LightBlue;
+                closedNodes.Add(currentNode);
+                openNodes.Remove(currentNode);
+                currentNode = null;
             }
         }
 
-        private static void CheckOpenNodes(Tile temp)
+        private static void SetCosts(Tile currentNode, Tile neighbor)
         {
-            int x = temp.MapPositionX, y = temp.MapPositionY;
+            #region Set baseCost
+            int baseGCost;
 
-            List<Tile> neighbors = new();
-
-            neighbors.AddRange(GetAdjacentNodes(x, y));
-            neighbors.AddRange(GetVerticalNodes(x, y));
-
-            foreach (Tile tile in neighbors)
+            if (currentNode.GridX == neighbor.GridX || currentNode.GridY == neighbor.GridY)
             {
-                if (tile == targetNode)
-                {
-                    foundPath = true;
-                    targetNode.parent = temp;
-                    break;
-                }
+                baseGCost = 10;
             }
-
-            #region Set costs for neigboring nodes
-            if (!foundPath)
+            else
             {
-                foreach (Tile tile in GetAdjacentNodes(x, y))
-                {
-                    if (!closedNodes.Contains(tile) && !tile.IsSolid)
-                    {
-                        if (NewPathShorter(tile, temp))
-                        {
-                        }
-                        if (!openNodes.Contains(tile))
-                        {
-                            openNodes.Add(tile);
-                            tile.color = Color.Green;
-                            SetCosts(map[x, y], tile, false);
-                        }
-                    }
-                }
-
-                foreach (Tile tile in GetVerticalNodes(x, y))
-                {
-                    if (!closedNodes.Contains(tile) && !tile.IsSolid)
-                    {
-                        if (NewPathShorter(tile, temp))
-                        {
-                        }
-                        if (!openNodes.Contains(tile))
-                        {
-                            openNodes.Add(tile);
-                            tile.color = Color.Green;
-                            SetCosts(map[x, y], tile, true);
-                        }
-                    }
-                }
+                baseGCost = 14;
             }
             #endregion
 
-            temp.color = Color.Red;
+            #region Set node values
+            neighbor.hCost = GetHCost(neighbor);
+            neighbor.gCost = currentNode.gCost + baseGCost;
+            neighbor.fCost = neighbor.gCost + neighbor.hCost;
+
+            neighbor.parent = currentNode;
+            #endregion
+
+            // For debugging
+            neighbor.fontSize = Game1.font.MeasureString(neighbor.fCost.ToString());
         }
 
-        private static List<Tile> GetAdjacentNodes(int positionX, int positionY)
+        private static int GetHCost(Tile currentNode)
+        {
+            // The cost from the current node to the target
+            int cost = 0;
+
+            List<Tile> hasVisited = new()
+            {
+                currentNode,
+            };
+
+            bool foundTarget = false;
+            Tile closestNode = currentNode;
+
+            while (!foundTarget)
+            {
+                int tempCost;
+                Tile prevNode = closestNode;
+
+                // "Walk" towards target to calculate final distance
+
+                #region Get the closest node
+                foreach (Tile neighbor in GetNeighbors(closestNode.GridX, closestNode.GridY))
+                {
+                    if (hasVisited.Contains(neighbor))
+                    {
+                        continue;
+                    }
+
+                    float xDistance = MathF.Abs(neighbor.Position.X - targetNode.Position.X);
+                    float yDistance = MathF.Abs(neighbor.Position.Y - targetNode.Position.Y);
+
+                    float tempXDistance = MathF.Abs(closestNode.Position.X - targetNode.Position.X);
+                    float tempYDistance = MathF.Abs(closestNode.Position.Y - targetNode.Position.Y);
+
+                    if (xDistance < tempXDistance || yDistance < tempYDistance)
+                    {
+                        closestNode = neighbor;
+                        hasVisited.Add(closestNode);
+                    }
+                }
+                #endregion
+
+                #region Determine if the move is vertical or adjacent
+                if (closestNode.GridX == prevNode.GridX || closestNode.GridY == prevNode.GridY)
+                {
+                    tempCost = 10;
+                }
+                else
+                {
+                    tempCost = 14;
+                }
+                #endregion
+
+                cost += tempCost;
+
+                if (closestNode == targetNode)
+                {
+                    foundTarget = true;
+                }
+            }
+
+            return cost;
+        }
+
+        private static int GetDistance(Tile NodeA, Tile NodeB)
+        {
+            int distanceX = Math.Abs(NodeA.GridX - NodeB.GridX);
+            int distanceY = Math.Abs(NodeA.GridY - NodeB.GridY);
+
+            if (distanceX > distanceY)
+            {
+                return 14 * distanceY + 10 * (distanceX - distanceY);
+            }
+            else
+            {
+                return 14 * distanceX + 10 * (distanceY - distanceX);
+            }
+        }
+
+        private static List<Tile> GetNeighbors(int positionX, int positionY)
         {
             List<Tile> result = new();
             Tile NeighboringNode;
 
             #region Adjacent
-            if (InBounds(map, positionX + 1, positionY))
+            if (InBounds(grid, positionX + 1, positionY))
             {
-                NeighboringNode = map[positionX + 1, positionY];
+                NeighboringNode = grid[positionX + 1, positionY];
 
                 result.Add(NeighboringNode);
             }
-            if (InBounds(map, positionX - 1, positionY))
+            if (InBounds(grid, positionX - 1, positionY))
             {
-                NeighboringNode = map[positionX - 1, positionY];
+                NeighboringNode = grid[positionX - 1, positionY];
 
                 result.Add(NeighboringNode);
             }
-            if (InBounds(map, positionX, positionY + 1))
+            if (InBounds(grid, positionX, positionY + 1))
             {
-                NeighboringNode = map[positionX, positionY + 1];
+                NeighboringNode = grid[positionX, positionY + 1];
 
                 result.Add(NeighboringNode);
             }
-            if (InBounds(map, positionX, positionY - 1))
+            if (InBounds(grid, positionX, positionY - 1))
             {
-                NeighboringNode = map[positionX, positionY - 1];
+                NeighboringNode = grid[positionX, positionY - 1];
 
                 result.Add(NeighboringNode);
             }
             #endregion
-
-            return result;
-        }
-
-        private static List<Tile> GetVerticalNodes(int positionX, int positionY)
-        {
-            List<Tile> result = new ();
-            Tile NeighboringNode;
 
             #region Vertical
-            if (InBounds(map, positionX + 1, positionY + 1))
+            if (InBounds(grid, positionX + 1, positionY + 1))
             {
-                NeighboringNode = map[positionX + 1, positionY + 1];
+                NeighboringNode = grid[positionX + 1, positionY + 1];
 
                 result.Add(NeighboringNode);
             }
-            if (InBounds(map, positionX + 1, positionY - 1))
+            if (InBounds(grid, positionX + 1, positionY - 1))
             {
-                NeighboringNode = map[positionX + 1, positionY - 1];
+                NeighboringNode = grid[positionX + 1, positionY - 1];
 
                 result.Add(NeighboringNode);
             }
-            if (InBounds(map, positionX - 1, positionY - 1))
+            if (InBounds(grid, positionX - 1, positionY - 1))
             {
-                NeighboringNode = map[positionX - 1, positionY - 1];
+                NeighboringNode = grid[positionX - 1, positionY - 1];
 
                 result.Add(NeighboringNode);
             }
-            if (InBounds(map, positionX - 1, positionY + 1))
+            if (InBounds(grid, positionX - 1, positionY + 1))
             {
-                NeighboringNode = map[positionX - 1, positionY + 1];
+                NeighboringNode = grid[positionX - 1, positionY + 1];
 
                 result.Add(NeighboringNode);
             }
             #endregion
 
             return result;
-        }
-
-        private static bool NewPathShorter(Tile neighboringNode, Tile temp)
-        {
-            int x = startingNode.MapPositionX, y = startingNode.MapPositionY;
-            List<Tile> hasVisited = new(), newPath = new();
-            Tile closestNode = startingNode;
-            bool foundTarget = false;
-            int totalCost = 0;
-
-            while (!foundTarget)
-            {
-                int tempCost = 0;
-
-                List<Tile> adjacentNodes = new(), verticalNodes = new();
-                adjacentNodes.AddRange(GetAdjacentNodes(x, y));
-                verticalNodes.AddRange(GetVerticalNodes(x, y));
-
-                // "Walk" towards target to calculate final distance
-
-                #region Check adjacent nodes
-                for (int j = 0; j < adjacentNodes.Count; j++)
-                {
-                    if (!hasVisited.Contains(adjacentNodes[j]))
-                    {
-                        float xDistance = MathF.Abs(adjacentNodes[j].Position.X - neighboringNode.Position.X);
-                        float yDistance = MathF.Abs(adjacentNodes[j].Position.Y - neighboringNode.Position.Y);
-
-                        float tempXDistance = MathF.Abs(closestNode.Position.X - neighboringNode.Position.X);
-                        float tempYDistance = MathF.Abs(closestNode.Position.Y - neighboringNode.Position.Y);
-
-                        if (xDistance < tempXDistance || yDistance < tempYDistance)
-                        {
-                            tempCost = 10;
-                            closestNode = adjacentNodes[j];
-
-                            if (closestNode != startingNode)
-                            {
-                                hasVisited.Add(closestNode);
-                            }
-                        }
-                    }
-                }
-                #endregion
-
-                #region Check vertical nodes
-
-                for (int j = 0; j < verticalNodes.Count; j++)
-                {
-                    if (!hasVisited.Contains(verticalNodes[j]))
-                    {
-                        float xDistance = MathF.Abs(verticalNodes[j].Position.X - neighboringNode.Position.X);
-                        float yDistance = MathF.Abs(verticalNodes[j].Position.Y - neighboringNode.Position.Y);
-
-                        float tempXDistance = MathF.Abs(closestNode.Position.X - neighboringNode.Position.X);
-                        float tempYDistance = MathF.Abs(closestNode.Position.Y - neighboringNode.Position.Y);
-
-                        if (xDistance < tempXDistance || yDistance < tempYDistance)
-                        {
-                            tempCost = 14;
-                            closestNode = verticalNodes[j];
-
-                            if (closestNode != startingNode)
-                            {
-                                hasVisited.Add(closestNode);
-                            }
-                        }
-                    }
-                }
-                #endregion
-
-                if (closestNode == neighboringNode)
-                {
-                    foundTarget = true;
-                }
-                else if (closestNode != null)
-                {
-                    x = closestNode.MapPositionX;
-                    y = closestNode.MapPositionY;
-                }
-
-                totalCost += tempCost;
-            }
-
-            if (totalCost < neighboringNode.gCost)
-            {
-                for (int i = 0; i < newPath.Count; i++)
-                {
-                    if (i > 0)
-                    {
-                        newPath[i].parent = newPath[i - 1];
-                    }
-                }
-
-                return true;
-            }
-
-            return false;
-        }
-
-        private static void SetCosts(Tile currentNode, Tile neighboringNode, bool isVertical)
-        {
-            #region BaseCost
-            // Set cost for current node
-            int baseGCost;
-
-            if (isVertical) // GCost for vertical nodes ≈ SQRT(2) * 10
-            {
-                baseGCost = 14;
-            }
-            else // GCost for adjacent nodes = 1 * 10
-            {
-                baseGCost = 10;
-            }
-            #endregion
-
-            #region Set node values
-            neighboringNode.hCost = GetHCost(neighboringNode, targetNode);
-            neighboringNode.gCost = currentNode.gCost + baseGCost;
-            neighboringNode.fCost = neighboringNode.gCost + neighboringNode.hCost;
-
-            neighboringNode.parent = currentNode;
-            #endregion
-
-            // For debugging
-            neighboringNode.fontSize = Game1.font.MeasureString(neighboringNode.fCost.ToString());
-        }
-
-        private static int GetHCost(Tile NeighboringNode, Tile target)
-        {
-            // The cost from the current node to the target
-            int totalHCost = 0;
-
-            int x = NeighboringNode.MapPositionX, y = NeighboringNode.MapPositionY;
-            List<Tile> hasVisited = new();
-            bool foundTarget = false;
-
-            while (!foundTarget)
-            {
-                int tempCost = 0;
-                Tile closestNode = null;
-
-                List<Tile> adjacentNodes = new(), verticalNodes = new();
-                adjacentNodes.AddRange(GetAdjacentNodes(x, y));
-                verticalNodes.AddRange(GetVerticalNodes(x, y));
-
-                // "Walk" towards target to calculate final distance
-
-                #region Check adjacent nodes
-                for (int j = 0; j < adjacentNodes.Count; j++)
-                {
-                    if (closestNode == null)
-                    {
-                        closestNode = adjacentNodes[j];
-                        hasVisited.Add(closestNode);
-                        tempCost = 10;
-                    }
-                    else
-                    {
-                        if (!hasVisited.Contains(adjacentNodes[j]))
-                        {
-                            float xDistance = MathF.Abs(adjacentNodes[j].Position.X - target.Position.X);
-                            float yDistance = MathF.Abs(adjacentNodes[j].Position.Y - target.Position.Y);
-
-                            float tempXDistance = MathF.Abs(closestNode.Position.X - target.Position.X);
-                            float tempYDistance = MathF.Abs(closestNode.Position.Y - target.Position.Y);
-
-                            if (xDistance < tempXDistance || yDistance < tempYDistance)
-                            {
-                                tempCost = 10;
-                                closestNode = adjacentNodes[j];
-                                hasVisited.Add(closestNode);
-                            }
-                        }
-                    }
-                }
-                #endregion
-
-                #region Check vertical nodes
-
-                for (int j = 0; j < verticalNodes.Count; j++)
-                {
-                    if (closestNode == null && openNodes.Contains(adjacentNodes[j]))
-                    {
-                        closestNode = verticalNodes[j];
-                        hasVisited.Add(closestNode);
-                        tempCost = 14;
-                    }
-                    else
-                    {
-                        if (!hasVisited.Contains(verticalNodes[j]))
-                        {
-                            float xDistance = MathF.Abs(verticalNodes[j].Position.X - target.Position.X);
-                            float yDistance = MathF.Abs(verticalNodes[j].Position.Y - target.Position.Y);
-
-                            float tempXDistance = MathF.Abs(closestNode.Position.X - target.Position.X);
-                            float tempYDistance = MathF.Abs(closestNode.Position.Y - target.Position.Y);
-
-                            if (xDistance < tempXDistance || yDistance < tempYDistance)
-                            {
-                                tempCost = 14;
-                                closestNode = verticalNodes[j];
-                                hasVisited.Add(closestNode);
-                            }
-                        }
-                    }
-                }
-                #endregion
-
-                if (closestNode == target)
-                {
-                    foundTarget = true;
-                }
-                else if (closestNode != null)
-                {
-                    x = closestNode.MapPositionX;
-                    y = closestNode.MapPositionY;
-                }
-
-                totalHCost += tempCost;
-            }
-
-            return totalHCost;
         }
 
         private static bool InBounds(Tile[,] map, int x, int y)
